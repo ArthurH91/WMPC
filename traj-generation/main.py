@@ -40,7 +40,6 @@ problem = OCPPandaReachingColWithMultipleCol(
     TARGET,
     T,
     dt,
-    x0,
     WEIGHT_GRIPPER_POSE=100,
     WEIGHT_xREG=1e-2,
     WEIGHT_uREG=1e-4,

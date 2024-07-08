@@ -216,6 +216,6 @@ class OCPPandaReachingColWithMultipleCol:
         ddp.eps_abs = 1e-6
         ddp.eps_rel = 0
 
-        ddp.with_callbacks = True
+        ddp.with_callbacks = False
 
         return ddp

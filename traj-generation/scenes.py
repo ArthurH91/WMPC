@@ -26,7 +26,7 @@ class Scene:
         self._target = pin.SE3.Identity()
         if self._name_scene == "box":
             self._target = pin.SE3(
-                pin.utils.rotate("x", np.pi), np.array([0.0, 0.2, 0.8])
+                pin.utils.rotate("x", np.pi), np.array([0.0, -0.35, 1.5])
             )
             self._q0 = np.array(
                 [

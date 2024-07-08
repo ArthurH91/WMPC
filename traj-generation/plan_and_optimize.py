@@ -4,8 +4,6 @@ import warnings
 import numpy as np
 import pydynorrt as pyrrt
 import pinocchio as pin  # Not needed in the current script (consider removing if not used)
-import meshcat
-import time
 
 from pinocchio.visualize import MeshcatVisualizer as PMV
 
@@ -16,7 +14,7 @@ class PlanAndOptimize:
     """
 
     def __init__(
-        self, rmodel: pin.Model, cmodel: pin.GeometryModel, ee_name: str, OCP
+        self, rmodel: pin.Model, cmodel: pin.GeometryModel, ee_name: str, T: int
     ) -> None:
 
         # Models of the robot
@@ -26,8 +24,8 @@ class PlanAndOptimize:
         # Setting up the planning problem
         self._ee_name = ee_name
 
-        # Optimal control problem
-        self._OCP = OCP
+        # Number of nodes in the OCP at the end
+        self._T = T 
 
         # Booleans describing the state of the planner
         self._set_IK = False
@@ -140,17 +138,7 @@ class PlanAndOptimize:
             self._set_limits()
 
         out = self._solver.solve_ik()
-        tic = time.time()
         ik_solutions = self._solver.get_ik_solutions()
-        toc = time.time()
-        print("number of solutions", len(ik_solutions))
-        print(
-            "Elapsed time [s]: ",
-            toc - tic,
-            " time per IK solutions",
-            (toc - tic) / len(ik_solutions),
-        )
-        print("out", out)
 
         self._solved_IK = True
 
@@ -258,7 +246,7 @@ class PlanAndOptimize:
         start = self._new_path_fine[0]
         end = self._new_path_fine[-1]
 
-        T = self._OCP._T  # Number of nodes in the optimized trajectory
+        T = self._T  # Number of nodes in the optimized trajectory
         T_remaining = T - 2  # T - start - end number of nodes
 
         T_new_path = len(self._new_path_fine) - 2
@@ -272,9 +260,9 @@ class PlanAndOptimize:
 
         return ressample_path
     
-    def optimize(self):
+    def optimize(self, OCP):
         
-        ocp = self._OCP()
+        ocp = OCP()
         X_init = []
         
         for q in self._sol:
@@ -288,7 +276,6 @@ class PlanAndOptimize:
 if __name__ == "__main__":
 
     import time
-    import numpy as np
     import pinocchio as pin
 
     from wrapper_meshcat import MeshcatWrapper
@@ -323,7 +310,7 @@ if __name__ == "__main__":
     x0 = np.concatenate([q0, pin.utils.zero(rmodel.nv)])
     OCP = OCPPandaReachingColWithMultipleCol(rmodel, cmodel, TARGET, T, dt=0.05, x0=x0)
 
-    PaO = PlanAndOptimize(rmodel, cmodel, "panda2_leftfinger", OCP)
+    PaO = PlanAndOptimize(rmodel, cmodel, "panda2_leftfinger", T)
 
     PaO.set_ik_solver(oMgoal=TARGET)
     sol = PaO.solve_IK()
@@ -337,7 +324,7 @@ if __name__ == "__main__":
         vis.display(s)
         input()
     
-    xs, us = PaO.optimize()
+    xs, us = PaO.optimize(OCP)
     
     while True:
         vis.display(q0)
