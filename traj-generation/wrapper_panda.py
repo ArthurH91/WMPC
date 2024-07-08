@@ -57,7 +57,7 @@ class PandaWrapper:
 
         # Importing the model
         pinocchio_model_dir = dirname(dirname(((str(abspath(__file__))))))
-        model_path = join(pinocchio_model_dir, "robot_description")
+        model_path = join(pinocchio_model_dir, "models")
         self._mesh_dir = join(model_path, "meshes")
         urdf_filename = "franka2.urdf"
         srdf_filename = "demo.srdf"

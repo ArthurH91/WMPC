@@ -29,7 +29,15 @@ class Scene:
                 pin.utils.rotate("x", np.pi), np.array([0.0, 0.2, 0.8])
             )
             self._q0 = np.array(
-                [6.2e-01, 1.7e00, 1.5e00, 6.9e-01, -1.3e00, 1.1e00, 1.5e-01]
+                [
+                    0.53274129,
+                    0.76108906,
+                    -0.30547986,
+                    -2.0942417,
+                    0.54367702,
+                    2.9007583,
+                    -2.17958825,
+                ]
             )
             OBSTACLE_HEIGHT = 0.85
             OBSTACLE_X = 2.0e-1
@@ -130,11 +138,12 @@ class Scene:
                 "obstacle4",
             ]
             shapes_avoiding_collision = [
-                "panda2_link7_sc_4",
-                "panda2_link7_sc_1",
-                "panda2_link6_sc_2",
-                "panda2_link5_sc_3",
-                "panda2_link5_sc_4",
+                "panda2_link7_capsule_0",
+                "panda2_link7_capsule_1",
+                "panda2_link6_capsule_0",
+                "panda2_link5_capsule_0",
+                "panda2_link5_capsule_1",
+                "panda2_link4_capsule_0",
                 "panda2_rightfinger_0",
                 "panda2_leftfinger_0",
             ]
@@ -144,7 +153,7 @@ class Scene:
                 "support_link_0",
                 "panda2_leftfinger_0",
                 "panda2_rightfinger_0",
-                "panda2_link5_sc_4",
+                "panda2_link5_capsule_0",
             ]
         elif self._name_scene == "wall":
             obstacles = [
@@ -152,15 +161,19 @@ class Scene:
                 "obstacle1",
             ]
             shapes_avoiding_collision = [
-                "panda2_link7_sc_4",
-                "panda2_link7_sc_1",
-                "panda2_link6_sc_2",
-                "panda2_link5_sc_3",
-                "panda2_link5_sc_4",
+                "panda2_link7_capsule_0",
+                "panda2_link7_capsule_1",
+                "panda2_link6_capsule_0",
+                "panda2_link5_capsule_0",
+                "panda2_link5_capsule_1",
+                "panda2_link4_capsule_0",
                 "panda2_rightfinger_0",
                 "panda2_leftfinger_0",
             ]
         for shape in shapes_avoiding_collision:
+            assert self._cmodel.existGeometryName(
+                shape
+            ), f"The geometry shape {shape} doesn't exist."
             # Highlight the shapes of the robot that are supposed to avoid collision
             self._cmodel.geometryObjects[
                 self._cmodel.getGeometryId(shape)
