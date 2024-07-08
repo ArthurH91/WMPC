@@ -197,7 +197,7 @@ class OCPPandaReachingColWithMultipleCol:
         )
 
         problem = crocoddyl.ShootingProblem(
-            self._x0, [self._runningModel] * self._T, self._terminalModel
+            self._x0, [self._runningModel] * (self._T - 1), self._terminalModel
         )
         # Create solver + callbacks
         # ddp = crocoddyl.SolverSQP(problem)
