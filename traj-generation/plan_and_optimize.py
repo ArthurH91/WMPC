@@ -16,6 +16,15 @@ class PlanAndOptimize:
     def __init__(
         self, rmodel: pin.Model, cmodel: pin.GeometryModel, ee_name: str, T: int
     ) -> None:
+        """This class takes a robot model and a collision model, an initial configuration and a SE3 pose and a name of the frame that is wanted to reach the SE3
+    in inputs, and returns a trajectory and its dynamics, linking the initial configuration to the SE3.
+
+        Args:
+            rmodel (pin.Model): pinocchio model of the robot.
+            cmodel (pin.GeometryModel): collision model of the robot.
+            ee_name (str): end-effector frame name.
+            T (int): number of nodes of the trajectory.
+        """
 
         # Models of the robot
         self._rmodel = rmodel
@@ -81,20 +90,21 @@ class PlanAndOptimize:
         use_gradient_descent=False,
         use_finite_diff=False,
     ) -> "pyrrt.Pin_ik_solver":
-        """_summary_
+        """Set the IK solver.
 
         Args:
-            q_upper_bounds (_type_, optional): _description_. Defaults to None.
-            q_lower_bounds (_type_, optional): _description_. Defaults to None.
-            max_num_attempts (int, optional): _description_. Defaults to 1000.
-            max_time_ms (int, optional): _description_. Defaults to 3000.
-            max_solutions (int, optional): _description_. Defaults to 20.
-            max_it (int, optional): _description_. Defaults to 1000.
-            use_gradient_descent (bool, optional): _description_. Defaults to False.
-            use_finite_diff (bool, optional): _description_. Defaults to False.
+            q_upper_bounds (np.ndarray, optional): Bounds of the robot. Defaults to None.
+            q_lower_bounds (np.ndarray, optional): Bounds of the robot. Defaults to None.
+            oMgoal (pin.SE3, optional): SE3 describing the postion to be reached for the target. Defaults to pin.SE3.Identity().
+            max_num_attempts (int, optional): Number max of attemps for the solver. Defaults to 1000.
+            max_time_ms (int, optional): Maximum time of solving. Defaults to 3000.
+            max_solutions (int, optional): Number max of configurations found as solution. Defaults to 20.
+            max_it (int, optional): Maximum iterations of the solver. Defaults to 1000.
+            use_gradient_descent (bool, optional): Use gradient descent or 2nd order method. Defaults to False.
+            use_finite_diff (bool, optional): Use finite differencing. Defaults to False.
 
         Returns:
-            pyrrt.Pin_ik_solver: _description_
+            pyrrt.Pin_ik_solver: IK solver.
         """
         self._set_IK = True
         self._solver = pyrrt.Pin_ik_solver()
@@ -155,14 +165,19 @@ class PlanAndOptimize:
         return self._ik_solutions
 
     def set_collision_planner(self):
-
+        """Set the collision planner.
+        """
         self.cm = pyrrt.Collision_manager_pinocchio()
         pyrrt.set_pin_model(self.cm, self._rmodel, self._cmodel)
         self.cm.reset_counters()
         self._set_collision_planner = True
 
     def _generate_random_collision_free_configuration(self) -> np.ndarray:
+        """Generate random feasible configurations.
 
+        Returns:
+            np.ndarray: feasible configuration.
+        """
         if not self._set_collision_planner:
             self.set_collision_planner()
         if not self._set_lim:
@@ -182,10 +197,21 @@ class PlanAndOptimize:
         q_upper_bounds=None,
         q_lower_bounds=None,
     ):
+        """_summary_
+
+        Args:
+            start (_type_, optional): _description_. Defaults to None.
+            ik_solutions (list, optional): _description_. Defaults to [].
+            q_upper_bounds (_type_, optional): _description_. Defaults to None.
+            q_lower_bounds (_type_, optional): _description_. Defaults to None.
+
+        Returns:
+            _type_: _description_
+        """
 
         # Configuration of the RRT
         self._rrt = pyrrt.PlannerRRT_Rn()
-        config_str = """
+        config_str = '''
         [RRT_options]
         max_it = 20000
         max_num_configs = 20000
@@ -194,7 +220,7 @@ class PlanAndOptimize:
         collision_resolution = 0.05
         goal_bias = 0.1
         store_all = false
-        """
+        '''
 
         # Setting up start & goal
         if start is None:
@@ -217,7 +243,11 @@ class PlanAndOptimize:
         return self._rrt
 
     def plan(self) -> List[np.ndarray]:
+        """_summary_
 
+        Returns:
+            List[np.ndarray]: _description_
+        """
         assert self._set_planner == True, "Set up the planner first"
         out = self._rrt.plan()
         assert out == pyrrt.TerminationCondition.GOAL_REACHED
@@ -227,7 +257,11 @@ class PlanAndOptimize:
         return self._sol
 
     def _shortcut(self) -> List[np.ndarray]:
+        """_summary_
 
+        Returns:
+            List[np.ndarray]: _description_
+        """
         self._shortcut_done = True
         path_shortcut = pyrrt.PathShortCut_RX()
         path_shortcut.init(self._rmodel.nq)
@@ -240,7 +274,14 @@ class PlanAndOptimize:
         return self._new_path_fine
 
     def _ressample_path(self) -> List[np.ndarray]:
+        """_summary_
 
+        Raises:
+            ValueError: _description_
+
+        Returns:
+            List[np.ndarray]: _description_
+        """
         if not self._shortcut_done:
             raise ValueError("Call the short and the plan method before.")
         start = self._new_path_fine[0]
@@ -261,7 +302,14 @@ class PlanAndOptimize:
         return ressample_path
     
     def optimize(self, OCP):
-        
+        """_summary_
+
+        Args:
+            OCP (_type_): _description_
+
+        Returns:
+            _type_: _description_
+        """
         ocp = OCP()
         X_init = []
         

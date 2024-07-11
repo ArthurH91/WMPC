@@ -6,7 +6,7 @@ class Net(nn.Module):
     def __init__(self, nq, T):
         super().__init__()
         self.T, self.nq = T, nq
-        self.fc1 = nn.Linear(nq*2, 256)
+        self.fc1 = nn.Linear(nq + 4 + 3, 256) # 9 for the rotation matrix + 3 for the 
         self.fc2 = nn.Linear(256, 256)
         self.fc3 = nn.Linear(256, T*nq)
 

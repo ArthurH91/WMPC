@@ -3,7 +3,7 @@ import pinocchio as pin
 
 import hppfcl
 
-from wrapper_meshcat import YELLOW_FULL
+from visualizer import YELLOW_FULL
 
 
 class Scene:
