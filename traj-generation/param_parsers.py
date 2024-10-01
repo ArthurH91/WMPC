@@ -49,7 +49,7 @@ class ParamParser:
             obs_id_frame = rmodel.addFrame(pin.Frame(obs, 0, 0, Mobs, pin.OP_FRAME))
             obs_geom = pin.GeometryObject(obs, 0, 0, rmodel.frames[obs_id_frame].placement, obs_hppfcl)
             obs_geom.meshColor = np.concatenate((np.random.randint(0,1, 3), np.ones(1))) 
-            obs_geom_id = cmodel.addGeometryObject(obs_geom)
+            _ = cmodel.addGeometryObject(obs_geom)
                                                   
         for col in self.data["collision_pairs"]:
             if cmodel.existGeometryName(col[0]) and cmodel.existGeometryName(col[1]):
@@ -71,6 +71,35 @@ class ParamParser:
     def get_X0(self):
         return np.concatenate((self.get_initial_config(),np.array(self.data["INITIAL_VELOCITY"])))
     
+    def get_safety_threshold(self):
+        return self.data["SAFETY_THRESHOLD"]
+    
+    def get_T(self):
+        return self.data["T"]
+    
+    def get_dt(self):
+        return self.data["dt"]
+    
+    def get_di(self):
+        return self.data["di"]
+    
+    def get_ds(self):
+        return self.data["ds"]
+    
+    def get_ksi(self):
+        return self.data["ksi"]
+    
+    def get_W_xREG(self):
+        return self.data["WEIGHT_xREG"]
+    
+    def get_W_uREG(self):
+        return self.data["WEIGHT_uREG"]
+    
+    def get_W_gripper_pose(self):
+        return self.data["WEIGHT_GRIPPER_POSE"]
+    
+    def get_W_gripper_pose_term(self):
+        return self.data["WEIGHT_GRIPPER_POSE_TERM"]
     
 
 
