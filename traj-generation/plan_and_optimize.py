@@ -3,9 +3,7 @@ from typing import List
 import warnings
 import numpy as np
 import pydynorrt as pyrrt
-import pinocchio as pin  # Not needed in the current script (consider removing if not used)
-
-from pinocchio.visualize import MeshcatVisualizer as PMV
+import pinocchio as pin 
 
 
 class PlanAndOptimize:
@@ -321,21 +319,36 @@ class PlanAndOptimize:
         
         return ocp.xs, ocp.us
     
+    def compute_traj(self, q0: np.ndarray, oMgoal: pin.SE3, OCP):
+        
+        x0 = np.concatenate([q0, pin.utils.zero(rmodel.nv)])
+    
+        self.set_ik_solver(oMgoal=oMgoal)
+        sol = self.solve_IK()
+        self.init_planner(start=q0, ik_solutions=sol)
+        
+        fine_path = self.plan()
+        t = self._ressample_path()
+        xs, us = self.optimize(OCP)
+        
+        return xs, us
+
+        
 if __name__ == "__main__":
 
     import time
     import pinocchio as pin
 
-    from wrapper_meshcat import MeshcatWrapper
+    from visualizer import create_viewer
     from wrapper_panda import PandaWrapper
     from ocp import OCPPandaReachingColWithMultipleCol
     from scenes import Scene
 
     ### PARAMETERS
     # Number of nodes of the trajectory
-    T = 10
+    T = 40
     # Time step between each node
-    dt = 0.01
+    dt = 0.005
 
     # Creating the robot
     robot_wrapper = PandaWrapper(capsule=True)
@@ -344,14 +357,10 @@ if __name__ == "__main__":
     # Creating the scene
     scene = Scene()
     cmodel, TARGET, q0 = scene.create_scene(rmodel, cmodel, "box")
-
+    TARGET.translation = np.array([0., 0.2, 0.9])
     # Generating the meshcat visualizer
-    MeshcatVis = MeshcatWrapper()
-    vis, meshcatVis = MeshcatVis.visualize(
-        TARGET,
-        robot_model=rmodel,
-        robot_collision_model=cmodel,
-        robot_visual_model=vmodel,
+    vis = create_viewer(
+        rmodel, cmodel, cmodel
     )
 
     ### INITIAL X0
@@ -359,26 +368,13 @@ if __name__ == "__main__":
     OCP = OCPPandaReachingColWithMultipleCol(rmodel, cmodel, TARGET, T, dt=0.05, x0=x0)
 
     PaO = PlanAndOptimize(rmodel, cmodel, "panda2_leftfinger", T)
-
-    PaO.set_ik_solver(oMgoal=TARGET)
-    sol = PaO.solve_IK()
-
-    PaO.init_planner(start=q0, ik_solutions=sol)
-
-    fine_path = PaO.plan()
-    t = PaO._ressample_path()
-    print(len(fine_path))
-    for s in t:
-        vis.display(s)
-        input()
-    
-    xs, us = PaO.optimize(OCP)
-    
+    xs, us = PaO.compute_traj(q0, TARGET, OCP)
+    print("ready to visualize")
     while True:
         vis.display(q0)
         input()
         for x in xs:
             vis.display(np.array(x[:7].tolist()))
-            time.sleep(1e-1)
-        input()
+            # time.sleep(1e-1)
+            input()
         print("replay")
