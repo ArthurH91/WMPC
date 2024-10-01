@@ -38,6 +38,11 @@ scene0:
   # Safety threshold
   SAFETY_THRESHOLD: 0.001
 
+  # Velocity Damper parameters
+  ksi: 0.0001
+  di: 0.001
+  ds: 0.000001 # 0.0000001
+
   OBSTACLES:
     obstacle1:
         type: "box"
