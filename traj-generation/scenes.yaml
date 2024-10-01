@@ -1,0 +1,109 @@
+scene0:
+  # Number of nodes of the trajectory
+  T: 30
+
+  # Time step between each node
+  dt: 0.05
+
+  # Initial configuration and velocity
+  INITIAL_CONFIG:
+    - 6.87676046e-02
+    - 1.87133260
+    - -9.23646871e-01
+    - 6.62962572e-01
+    - 5.02801754e-01
+    - 1.696128891e-00
+    - 4.77514312e-01
+  INITIAL_VELOCITY:
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+
+  # Target pose
+  TARGET_POSE:
+    orientation: [ 1, 0, 0, 0 ]
+    translation: [0, 0.2, 0.9]
+
+  # Weights
+  WEIGHT_uREG: 0.0001
+  WEIGHT_xREG: 0.1
+  WEIGHT_GRIPPER_POSE: 50
+  WEIGHT_GRIPPER_POSE_TERM: 300
+  WEIGHT_LIMIT: 0.1
+
+  # Safety threshold
+  SAFETY_THRESHOLD: 0.001
+
+  OBSTACLES:
+    obstacle1:
+        type: "box"
+        translation: [0.1, 0.1, 0.9]
+        orientation: [0, 0, 0, 1]
+        dim: [0.09, 0.06, 0.2]
+    obstacle2:
+        type: "box"
+        translation: [0.1, 0.1, 1.2]
+        orientation: [0, 0, 0, 1]
+        dim: [0.09, 0.06, 0.2]
+
+  collision_pairs:
+    - [obstacle1, obstacle2]
+
+scene1:
+  # Number of nodes of the trajectory
+  T: 30
+
+  # Time step between each node
+  dt: 0.05
+
+  # Initial configuration and velocity
+  INITIAL_CONFIG:
+    - 6.87676046e-02
+    - 1.87133260
+    - -9.23646871e-01
+    - 6.62962572e-01
+    - 5.02801754e-01
+    - 1.696128891e-00
+    - 4.77514312e-01
+  INITIAL_VELOCITY:
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+
+  # Target pose
+  TARGET_POSE:
+    orientation: [ 1, 0, 0, 0 ]
+    translation: [0, 0.2, 0.9]
+
+  # Weights
+  WEIGHT_uREG: 0.0001
+  WEIGHT_xREG: 0.1
+  WEIGHT_GRIPPER_POSE: 50
+  WEIGHT_GRIPPER_POSE_TERM: 300
+  WEIGHT_LIMIT: 0.1
+
+  # Safety threshold
+  SAFETY_THRESHOLD: 0.001
+
+  OBSTACLES:
+    obstacle1:
+        type: "box"
+        translation: [0.1, 0.1, 0.9]
+        orientation: [0, 0, 0, 1]
+        dim: [0.09, 0.06, 0.2]
+    obstacle2:
+        type: "box"
+        translation: [0.1, 0.1, 0.9]
+        orientation: [0, 0, 0, 1]
+        dim: [0.09, 0.06, 0.2]
+
+  collision_pairs:
+    - [obstacle1, obstacle2]
