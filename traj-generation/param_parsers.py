@@ -31,7 +31,29 @@ class ParamParser:
         else:
             raise ValueError(f"Unknown shape {shape}")
         
-    
+    def add_ellipsoid_on_robot(self, rmodel: pin.Model, cmodel: pin.GeometryModel):
+        """ Add ellipsoid on the robot model
+        
+        Args:
+            rmodel (pin.Model): Robot model
+            cmodel (pin.GeometryModel): Collision model
+            
+        Returns:
+            cmodel: Collision model with added ellipsoids
+        """
+        if "ROBOT_ELLIPSOIDS" in self.data:
+            for ellipsoid in self.data["ROBOT_ELLIPSOIDS"]:
+                rob_hppfcl = hppfcl.Ellipsoid(*self.data["ROBOT_ELLIPSOIDS"][ellipsoid]["dim"])
+                rot_mat = pin.Quaternion(*tuple(self.data["ROBOT_ELLIPSOIDS"][ellipsoid]["orientation"])).normalized().toRotationMatrix()
+                Mrob = pin.SE3(rot_mat, np.array(self.data["ROBOT_ELLIPSOIDS"][ellipsoid]["translation"]))
+                idf_rob = rmodel.getFrameId(self.data["ROBOT_ELLIPSOIDS"][ellipsoid]["parentFrame"])
+                idj_rob = rmodel.frames[idf_rob].parentJoint
+                rob_geom = pin.GeometryObject(ellipsoid, idf_rob, idj_rob, Mrob, rob_hppfcl)
+                rob_geom.meshColor = np.concatenate((np.random.randint(0,1, 3), np.ones(1))) 
+                cmodel.addGeometryObject(rob_geom)
+        return cmodel
+        
+        
     def add_collisions(self, rmodel: pin.Model, cmodel: pin.GeometryModel):
         """ Add collisions to the robot model
 
@@ -42,10 +64,10 @@ class ParamParser:
         Returns:
             cmodel: Collision model with added collisions
         """
-
+        cmodel = self.add_ellipsoid_on_robot(rmodel, cmodel)
         for obs in self.data["OBSTACLES"]:
             obs_hppfcl = self._parse_obstacle_shape(self.data["OBSTACLES"][obs]["type"], self.data["OBSTACLES"][obs]["dim"])
-            Mobs = pin.SE3(pin.Quaternion(*tuple(self.data["OBSTACLES"][obs]["orientation"])).toRotationMatrix(), np.array(self.data["OBSTACLES"][obs]["translation"]))
+            Mobs = pin.SE3(pin.Quaternion(*tuple(self.data["OBSTACLES"][obs]["orientation"])).normalized().toRotationMatrix(), np.array(self.data["OBSTACLES"][obs]["translation"]))
             obs_id_frame = rmodel.addFrame(pin.Frame(obs, 0, 0, Mobs, pin.OP_FRAME))
             obs_geom = pin.GeometryObject(obs, 0, 0, rmodel.frames[obs_id_frame].placement, obs_hppfcl)
             obs_geom.meshColor = np.concatenate((np.random.randint(0,1, 3), np.ones(1))) 
