@@ -25,13 +25,13 @@ scene0:
 
   # Target pose
   TARGET_POSE:
-    orientation: [ 1, 0, 0, 0 ]
+    orientation: [ 0, 0, 0, 1 ]
     translation: [0, 0.2, 0.9]
 
   # Weights
   WEIGHT_uREG: 0.0001
   WEIGHT_xREG: 0.1
-  WEIGHT_GRIPPER_POSE: 50
+  WEIGHT_GRIPPER_POSE: 5
   WEIGHT_GRIPPER_POSE_TERM: 300
   WEIGHT_LIMIT: 0.1
 
@@ -45,18 +45,13 @@ scene0:
 
   OBSTACLES:
     obstacle1:
-        type: "box"
-        translation: [0.1, 0.1, 0.9]
-        orientation: [0, 0, 0, 1]
-        dim: [0.09, 0.06, 0.2]
-    obstacle2:
-        type: "box"
-        translation: [0.1, 0.1, 1.2]
+        type: "ellipsoid"
+        translation: [0.2, 0., 0.9]
         orientation: [0, 0, 0, 1]
         dim: [0.09, 0.06, 0.2]
 
   collision_pairs:
-    - [obstacle1, obstacle2]
+    - [panda2_rightfinger_0, obstacle1]
 
 scene1:
   # Number of nodes of the trajectory
@@ -85,7 +80,7 @@ scene1:
 
   # Target pose
   TARGET_POSE:
-    orientation: [ 1, 0, 0, 0 ]
+    orientation: [ 0, 0.707, 0, 0.707 ]
     translation: [0, 0.2, 0.9]
 
   # Weights
@@ -112,3 +107,71 @@ scene1:
 
   collision_pairs:
     - [obstacle1, obstacle2]
+
+
+scene2:
+  # Number of nodes of the trajectory
+  T: 50
+
+  # Time step between each node
+  dt: 0.05
+
+  # Initial configuration
+  INITIAL_CONFIG: 
+    - -0.06709294
+    - 1.35980773
+    - -0.81605989
+    - 0.74243348
+    - 0.42419277
+    - 0.45547585
+    - -0.00456262
+
+  # Initial velocity
+  INITIAL_VELOCITY: 
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+    - 0
+
+  # Target pose
+  TARGET_POSE:
+    orientation: [ 0, 0, 0, 1]
+    translation: [0, 0.5, 1.2]
+
+  # Control parameters
+  ksi: 0.0001
+  di: 0.001
+  ds: 0.000001 # 0.0000001
+
+  # Weights
+  WEIGHT_uREG: 0.0001
+  WEIGHT_xREG: 0.1
+  WEIGHT_GRIPPER_POSE: 1
+  WEIGHT_GRIPPER_POSE_TERM: 50
+  WEIGHT_LIMIT: 0.1
+
+  # Safety threshold
+  SAFETY_THRESHOLD: 0
+
+
+  # ROBOT_ELLIPSOIDS:
+  #   el1:
+  #     parentFrame: panda2_hand_tcp
+  #     translation: [0,0,0.1]
+  #     orientation: [0,0.707,0.707,0]
+  #     dim: [0.04, 0.04, 0.04]
+
+
+  OBSTACLES:
+    obstacle1:
+        type: "ellipsoid"
+        translation: [0, 0.1, 1.2]
+        orientation: [ 0, 0.707, 0.707, 0]
+        dim: [0.15, 0.1, 0.075]
+
+  collision_pairs:
+    - [obstacle1, panda2_rightfinger_0]
+    - [obstacle1, panda2_leftfinger_0]
