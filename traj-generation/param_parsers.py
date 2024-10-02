@@ -44,12 +44,16 @@ class ParamParser:
         if "ROBOT_ELLIPSOIDS" in self.data:
             for ellipsoid in self.data["ROBOT_ELLIPSOIDS"]:
                 rob_hppfcl = hppfcl.Ellipsoid(*self.data["ROBOT_ELLIPSOIDS"][ellipsoid]["dim"])
-                rot_mat = pin.Quaternion(*tuple(self.data["ROBOT_ELLIPSOIDS"][ellipsoid]["orientation"])).normalized().toRotationMatrix()
-                Mrob = pin.SE3(rot_mat, np.array(self.data["ROBOT_ELLIPSOIDS"][ellipsoid]["translation"]))
                 idf_rob = rmodel.getFrameId(self.data["ROBOT_ELLIPSOIDS"][ellipsoid]["parentFrame"])
+                print(idf_rob)
                 idj_rob = rmodel.frames[idf_rob].parentJoint
-                rob_geom = pin.GeometryObject(ellipsoid, idf_rob, idj_rob, Mrob, rob_hppfcl)
-                rob_geom.meshColor = np.concatenate((np.random.randint(0,1, 3), np.ones(1))) 
+                if "translation" in self.data["ROBOT_ELLIPSOIDS"][ellipsoid] and "orientation" in self.data["ROBOT_ELLIPSOIDS"][ellipsoid]:
+                    rot_mat = pin.Quaternion(*tuple(self.data["ROBOT_ELLIPSOIDS"][ellipsoid]["orientation"])).normalized().toRotationMatrix()
+                    Mrob = pin.SE3(rot_mat, np.array(self.data["ROBOT_ELLIPSOIDS"][ellipsoid]["translation"]))
+                else:
+                    Mrob = rmodel.frames[idf_rob].placement
+                rob_geom = pin.GeometryObject(ellipsoid, idj_rob, idf_rob, Mrob, rob_hppfcl)
+                rob_geom.meshColor = np.r_[1,1,0,1]
                 cmodel.addGeometryObject(rob_geom)
         return cmodel
         
@@ -69,7 +73,7 @@ class ParamParser:
             obs_hppfcl = self._parse_obstacle_shape(self.data["OBSTACLES"][obs]["type"], self.data["OBSTACLES"][obs]["dim"])
             Mobs = pin.SE3(pin.Quaternion(*tuple(self.data["OBSTACLES"][obs]["orientation"])).normalized().toRotationMatrix(), np.array(self.data["OBSTACLES"][obs]["translation"]))
             obs_id_frame = rmodel.addFrame(pin.Frame(obs, 0, 0, Mobs, pin.OP_FRAME))
-            obs_geom = pin.GeometryObject(obs, 0, 0, rmodel.frames[obs_id_frame].placement, obs_hppfcl)
+            obs_geom = pin.GeometryObject(obs, 0, obs_id_frame, rmodel.frames[obs_id_frame].placement, obs_hppfcl)
             obs_geom.meshColor = np.concatenate((np.random.randint(0,1, 3), np.ones(1))) 
             _ = cmodel.addGeometryObject(obs_geom)
                                                   
