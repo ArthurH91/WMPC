@@ -8,10 +8,10 @@ from param_parsers import ParamParser
 import create_ocp
 
 # Creating the robot
-robot_wrapper = PandaWrapper(capsule=True)
+robot_wrapper = PandaWrapper(capsule=False)
 rmodel, cmodel, vmodel = robot_wrapper()
 
-pp = ParamParser("scenes.yaml", 0)
+pp = ParamParser("scenes.yaml", 2)
 
 cmodel = pp.add_collisions(rmodel, cmodel)
 
@@ -30,12 +30,17 @@ add_sphere_to_viewer(vis, "goal", 5e-2,  pp.get_target_pose().translation, color
 
 # OCP with distance constraints
 OCP_dist = create_ocp.create_ocp_distance(rmodel, cmodel, pp)
-OCP_dist.solve()
+XS_init = [pp.get_X0()] * (pp.get_T() + 1)
+US_init = OCP_dist.problem.quasiStatic(XS_init[:-1])
+
+OCP_dist.solve(XS_init, US_init, 100)
+
 print("OCP with distance constraints solved")
 
 # OCP with velocity constraints
 ocp_vel = create_ocp.create_ocp_velocity(rmodel, cmodel, pp)
-ocp_vel.solve()
+ocp_vel.solve(XS_init, US_init, 100)
+
 print("OCP with velocity constraints solved")
 for i, xs in enumerate(ocp_vel.xs):
         q = np.array(xs[:7].tolist())

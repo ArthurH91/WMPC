@@ -116,7 +116,7 @@ def create_ocp_velocity(rmodel, gmodel, param_parser):
 
     # Parameters of the solver
     ocp.termination_tolerance = 1e-3
-    ocp.max_qp_iters = 10000
+    ocp.max_qp_iters = 1000
     ocp.eps_abs = 1e-6
     ocp.eps_rel = 0
 
