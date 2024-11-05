@@ -64,59 +64,94 @@ class TrajGeneration:
         outputs_tensor = torch.tensor(outputs, dtype=torch.float32)
         return inputs_tensor, torch.flatten(outputs_tensor)
 
-    def save_results_as_tensors(self, results, filename="trajectories.pt"):
-        """Stores generated results as a tensor file using torch.save."""
-        torch.save(results, filename)
-        print(f"Trajectories stored as {filename}.")
-
 
 if __name__ == "__main__":
+    import argparse
 
-    ### NUMBER OF TRAJS FOR GENERATION
-    num_trajs = 10
+    ### PARSER ###
+    parser = argparse.ArgumentParser(description="Trajectory generation parser")
 
-    ### FILENAME TO SAVE TRAJS
-    filename = "results/trajectories.pt"
-    # Initialize robot model and parameters
-    robot_wrapper = PandaWrapper(capsule=False)
+    parser.add_argument(
+        "-n",
+        "--num_trajs",
+        type=int,
+        default=10,
+        help="Number of trajectories to generate",
+    )
+    parser.add_argument(
+        "-rs",
+        "--random_initial_start",
+        action="store_true",
+        help="Flag to use a random initial start",
+    )
+    parser.add_argument(
+        "-rt",
+        "--random_target",
+        action="store_true",
+        help="Flag to use a random target",
+    )
+    parser.add_argument(
+        "-d",
+        "--display-traj",
+        action="store_true",
+        help="Flag to display trajectories in a meshcat viewer",
+    )
+    parser.add_argument(
+        "-sc", "--scene", type=int, default=1, help="Number of the scene to use"
+    )
+    args = parser.parse_args()
+
+    ### INITIALIZE ROBOT ###
+    robot_wrapper = PandaWrapper(capsule=True)
     rmodel, cmodel, vmodel = robot_wrapper()
-
     yaml_path = os.path.join(os.path.dirname(__file__), "scenes.yaml")
-    pp = ParamParser(yaml_path, 1)
-    # initial_config = pp.initial_config
-    initial_config = None
+    pp = ParamParser(yaml_path, args.scene)
     cmodel = pp.add_collisions(rmodel, cmodel)
-    vis = create_viewer(rmodel, cmodel, cmodel)
-    targ = pp.target_pose
     TG = TrajGeneration(rmodel, cmodel, pp)
 
+    ### STARTING POINT & ENDING POINT OF THE TRAJ ###(THEY WILL BE MODIFIED IF RANDOM ARGS IN PARSER)
+    initial_config = pp.initial_config
+    targ = pp.target_pose
+
+    ### TRAJECTORY GENERATION ###
     results = []
     with progress_bar as p:
-        for i in p.track(range(num_trajs)):
-            # targ = TG.PaO.get_random_reachable_target()
+        for i in p.track(range(args.num_trajs), description="Generating trajectories"):
+            if args.random_initial_start:
+                initial_config = pin.randomConfiguration(rmodel)
+            if args.random_target:
+                targ = TG.PaO.get_random_reachable_target()
             X0 = np.concatenate(
                 (
-                    (
-                        pin.randomConfiguration(rmodel)
-                        if initial_config is None
-                        else initial_config
-                    ),
+                    (initial_config),
                     np.zeros(rmodel.nv),
                 )
             )
             target, xs = TG.generate_traj(X0, targ)
-            if xs is not None:
+            if xs is not None:  # ie if the generation was successful
                 input_, output = TG.from_targ_xs_to_input_output(target, xs)
                 results.append((input_, output))
 
+    ### SAVE TRAJS ###
+    filename = (
+        f"results/trajectories_sc{args.scene}"
+        + ("_rs" if args.random_initial_start else "")
+        + ("_rt" if args.random_target else "")
+        + f"_n{args.num_trajs}.pt"
+    )
     torch.save(results, filename)
 
-    for i, result in enumerate(results):
-        if i > 0:
-            vis.viewer[f"goal{i-1}"].delete()
-        add_sphere_to_viewer(vis, f"goal{i}", 5e-2, result[0][:3].numpy(), color=0x006400)
-        vis.display(result[0][3:].numpy())
-        input()
-        for x in torch.split(result[1], rmodel.nq):
-            vis.display(x[:7].numpy())
+    ### DISPLAY TRAJS ###
+    if args.display_traj:
+        vis = create_viewer(rmodel, cmodel, cmodel)
+        for i, result in enumerate(results):
+            if i > 0:
+                vis.viewer[f"goal{i-1}"].delete()
+            add_sphere_to_viewer(
+                vis, f"goal{i}", 5e-2, result[0][:3].numpy(), color=0x006400
+            )
+            vis.display(result[0][3:].numpy())
             input()
+            for x in torch.split(result[1], rmodel.nq):
+                vis.display(x[:7].numpy())
+                input()
