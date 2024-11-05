@@ -134,7 +134,7 @@ if __name__ == "__main__":
 
     ### SAVE TRAJS ###
     filename = (
-        f"results/trajectories_sc{args.scene}"
+        f"results/trajectories/trajectories_sc{args.scene}"
         + ("_rs" if args.random_initial_start else "")
         + ("_rt" if args.random_target else "")
         + f"_n{args.num_trajs}.pt"
