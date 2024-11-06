@@ -218,7 +218,7 @@ scene3:
   OBSTACLES:
     obstacle1:
         type: "sphere"
-        translation: [0.0, 0.1, 1.4]
+        translation: [0.0, 0.1, 1.0]
         orientation: [0.707,0, 0.707, 0]
         dim: [0.2]
         
