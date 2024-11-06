@@ -13,7 +13,7 @@ from utils.visualizer import create_viewer, add_sphere_to_viewer
 
 #### Load data ####
 results_dir = osp.join(osp.dirname(str(osp.abspath(__file__))), "results")
-data_filename = "trajectories_sc2_rs_n1000.pt"
+data_filename = "trajectories_sc3_n1000.pt"
 data_path = osp.join(results_dir, "trajectories" ,  data_filename)
 data = torch.load(data_path, weights_only=True)
     
@@ -23,9 +23,11 @@ nq = 7
 # Create dataset
 dataset = TrajectoriesDataset(data)
 # Paths to the model and data
-model_file_name = "trajectories_sc2_rs_n1000_model.pth"
+model_file_name = "trajectories_sc3_n1000_model.pth"
 model_path = osp.join(results_dir, "models", model_file_name)
-net = MLP(hidden_sizes=[128, 128, 64])
+hidden_sizes=[128, 128, 128 , 64]
+
+net = MLP(hidden_sizes=hidden_sizes)
 
 
 # Load the model state
@@ -47,7 +49,7 @@ robot_wrapper = PandaWrapper(capsule=True)
 rmodel, cmodel, vmodel = robot_wrapper()
 
 yaml_path = "scenes.yaml"
-pp = ParamParser(yaml_path, 2)
+pp = ParamParser(yaml_path, 3)
 cmodel = pp.add_collisions(rmodel, cmodel)
 
 vis = create_viewer(rmodel, cmodel, cmodel)

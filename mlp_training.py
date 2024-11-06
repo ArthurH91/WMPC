@@ -54,7 +54,7 @@ if __name__ == "__main__":
     import os.path as osp
 
     #### Load data ####
-    data_filename = "trajectories_sc2_rs_n1000.pt"
+    data_filename = "trajectories_sc3_n1000.pt"
     data_path = osp.join(
         osp.dirname(str(osp.abspath(__file__))), "results/trajectories", data_filename
     )
@@ -79,7 +79,7 @@ if __name__ == "__main__":
     val_loader = DataLoader(val_dataset, batch_size=16, shuffle=False)
 
     #### Train the model ####
-    hidden_sizes=[128, 128, 64]
+    hidden_sizes=[128, 128, 128 , 64]
     net = MLP(hidden_sizes=hidden_sizes)
     criterion = nn.MSELoss()
     optimizer = optim.Adam(net.parameters())
