@@ -21,13 +21,5 @@ Warmstart for MPC using memory of motion.
 To use this code, you need: 
 
 - [colmpc](https://github.com/agimus-project/colmpc/tree/main) and its dependencies
--  
+- [dynoRRT](https://github.com/quimortiz/dynoRRT/tree/main) for trajectory generation  
 
-## Usage
-To start the project, use the following command:
-```bash
-npm start
-```
-
-## License
-This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
