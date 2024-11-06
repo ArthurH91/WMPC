@@ -175,13 +175,21 @@ class ParamParser:
 
 
 if __name__ == "__main__":
-    from utils.wrapper_panda import PandaWrapper
-
+    import os.path as osp
+    from wrapper_panda import PandaWrapper
+    from visualizer import create_viewer, add_sphere_to_viewer
     # Creating the robot
     robot_wrapper = PandaWrapper(capsule=True)
     rmodel, cmodel, vmodel = robot_wrapper()
 
-    path = "scenes.yaml"
-    scene = 0
+    
+    path = osp.join(osp.dirname(osp.dirname(__file__)), "scenes.yaml")
+    scene = 3
     pp = ParamParser(path, scene)
     cmodel = pp.add_collisions(rmodel, cmodel)
+
+    vis = create_viewer(rmodel, cmodel, cmodel)
+    add_sphere_to_viewer(
+        vis, "goal", 5e-2, pp.target_pose.translation, color=0x006400
+    )
+    vis.display(pp.initial_config)
