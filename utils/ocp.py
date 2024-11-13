@@ -10,7 +10,7 @@ import crocoddyl
 import pinocchio as pin
 import mim_solvers
 
-from utils.param_parsers import ParamParser
+from param_parsers import ParamParser
 import colmpc as col
 
 
@@ -66,7 +66,7 @@ class OCP:
         self._cdata = cmodel.createData()
 
         # Frames
-        self._endeff_frame = self._rmodel.getFrameId("panda2_leftfinger")
+        self._endeff_frame = self._rmodel.getFrameId("panda_hand_tcp")
 
         # Making sure that the frame exists
         assert self._endeff_frame <= len(self._rmodel.frames)
@@ -114,7 +114,7 @@ class OCP:
 
         for col_idx in range(len(self._cmodel.collisionPairs)):
             obstacleDistanceResidual = col.ResidualDistanceCollision(
-                self._state, 7, self._cmodel, col_idx
+                self._state, self._rmodel.nq, self._cmodel, col_idx
             )
             # Creating the inequality constraint
             constraint = crocoddyl.ConstraintModelResidual(
@@ -169,7 +169,7 @@ class OCP:
             [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.0]
         )
         self._terminalModel.differential.armature = np.array(
-            [0.1, 0.1, 0.1, 0.1, 0.1, 0.1, 0.0]
+            [0.1, 0.1, 0.1, 0.1, 0.1, 0.1,  0.0]
         )
 
         problem = crocoddyl.ShootingProblem(

@@ -3,7 +3,6 @@ import matplotlib.pyplot as plt
 
 import pinocchio as pin
 
-import matplotlib.colors as colors
 import matplotlib.cm as cm
 
 from rich.progress import (

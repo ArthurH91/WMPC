@@ -349,40 +349,48 @@ if __name__ == "__main__":
 
     import os
     import pinocchio as pin
-
-    from utils.visualizer import create_viewer, add_sphere_to_viewer
-    from utils.wrapper_panda import PandaWrapper
-    from utils.ocp import OCP
-    from utils.param_parsers import ParamParser
+    import example_robot_data as robex
+    from visualizer import create_viewer, add_sphere_to_viewer
+    from ocp import OCP
+    from param_parsers import ParamParser
 
     # Creating the robot
-    robot_wrapper = PandaWrapper(capsule=False)
-    rmodel, cmodel, vmodel = robot_wrapper()
+    panda = robex.load("panda_collision")
+    rmodel, cmodel, vmodel = panda.model, panda.collision_model, panda.visual_model
 
-    yaml_path = os.path.join(os.path.dirname(__file__), "scenes.yaml")
+    yaml_path = os.path.join(os.path.dirname(os.path.dirname(__file__)), "scenes.yaml")
     pp = ParamParser(yaml_path, 1)
 
+    geom_models = [vmodel, cmodel]
+    rmodel, geometric_models_reduced = pin.buildReducedModel(
+        rmodel,
+        list_of_geom_models=geom_models,
+        list_of_joints_to_lock=[7,8],
+        reference_configuration=np.append(np.array(pp.initial_config), np.zeros(2)))
+    # geometric_models_reduced is a list, ordered as the passed variable "geom_models" so:
+    vmodel, cmodel = geometric_models_reduced[
+        0], geometric_models_reduced[1]
     cmodel = pp.add_collisions(rmodel, cmodel)
 
     cdata = cmodel.createData()
     rdata = rmodel.createData()
-    ocp_creation = OCP.create_OCP(
+    ocp_creation = OCP(
         rmodel, cmodel, pp.target_pose, pp.X0, pp
     )
-    OCP = ocp_creation.create_OCP()
+    OCP_ = ocp_creation.create_OCP()
     # Generating the meshcat visualizer
-    vis = create_viewer(rmodel, cmodel, cmodel)
+    vis = create_viewer(rmodel, cmodel, vmodel)
     add_sphere_to_viewer(
         vis, "goal", 5e-2, pp.target_pose.translation, color=0x006400
     )
-    PaO = PlanAndOptimize(rmodel, cmodel, "panda2_hand_tcp", pp.T)
-    xs, us = PaO.compute_traj(pp.initial_config,pp.target_pose, OCP)
+    PaO = PlanAndOptimize(rmodel, cmodel, "panda_hand_tcp", pp.T)
+    xs, us = PaO.compute_traj(pp.initial_config,pp.target_pose, OCP_)
     print("ready to visualize")
     while True:
         vis.display(pp.initial_config)
         input()
         for x in xs:
-            vis.display(np.array(x[:7].tolist()))
+            vis.display(np.array(x[:rmodel.nq]))
             # time.sleep(1e-1)
             input()
         print("replay")
