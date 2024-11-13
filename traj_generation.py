@@ -12,8 +12,9 @@ from rich.progress import (
     TimeRemainingColumn,
 )
 
+import example_robot_data as robex
+
 from utils.visualizer import create_viewer, add_sphere_to_viewer
-from utils.wrapper_panda import PandaWrapper
 from utils.ocp import OCP
 from utils.param_parsers import ParamParser
 from utils.plan_and_optimize import PlanAndOptimize
@@ -35,7 +36,7 @@ class TrajGeneration:
         self.rmodel = rmodel
         self.cmodel = cmodel
         self.pp = pp
-        self.PaO = PlanAndOptimize(self.rmodel, self.cmodel, "panda2_hand_tcp", pp.T)
+        self.PaO = PlanAndOptimize(self.rmodel, self.cmodel, "panda_hand_tcp", pp.T)
 
     def generate_traj(self, X0, targ) -> Tuple[torch.Tensor, torch.Tensor]:
         """Generates a single trajectory and returns inputs and outputs as tensors."""
@@ -101,12 +102,26 @@ if __name__ == "__main__":
     )
     args = parser.parse_args()
 
-    ### INITIALIZE ROBOT ###
-    robot_wrapper = PandaWrapper(capsule=True)
-    rmodel, cmodel, vmodel = robot_wrapper()
+# Creating the robot
+    panda = robex.load("panda_collision")
+    rmodel, cmodel, vmodel = panda.model, panda.collision_model, panda.visual_model
+
     yaml_path = os.path.join(os.path.dirname(__file__), "scenes.yaml")
     pp = ParamParser(yaml_path, args.scene)
+
+    geom_models = [vmodel, cmodel]
+    rmodel, geometric_models_reduced = pin.buildReducedModel(
+        rmodel,
+        list_of_geom_models=geom_models,
+        list_of_joints_to_lock=[7,8],
+        reference_configuration=np.append(np.array(pp.initial_config), np.zeros(2)))
+    # geometric_models_reduced is a list, ordered as the passed variable "geom_models" so:
+    vmodel, cmodel = geometric_models_reduced[
+        0], geometric_models_reduced[1]
     cmodel = pp.add_collisions(rmodel, cmodel)
+
+    cdata = cmodel.createData()
+    rdata = rmodel.createData()
     TG = TrajGeneration(rmodel, cmodel, pp)
 
     ### STARTING POINT & ENDING POINT OF THE TRAJ ###(THEY WILL BE MODIFIED IF RANDOM ARGS IN PARSER)

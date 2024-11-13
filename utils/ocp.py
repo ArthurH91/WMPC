@@ -10,7 +10,7 @@ import crocoddyl
 import pinocchio as pin
 import mim_solvers
 
-from param_parsers import ParamParser
+from utils.param_parsers import ParamParser
 import colmpc as col
 
 
