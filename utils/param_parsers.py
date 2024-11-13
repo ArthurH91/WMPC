@@ -176,18 +176,29 @@ class ParamParser:
 
 if __name__ == "__main__":
     import os.path as osp
-    from wrapper_panda import PandaWrapper
+    import example_robot_data as robex
     from visualizer import create_viewer, add_sphere_to_viewer
     # Creating the robot
-    robot_wrapper = PandaWrapper(capsule=True)
-    rmodel, cmodel, vmodel = robot_wrapper()
+    # Creating the robot
+    panda = robex.load("panda_collision")
+    rmodel, cmodel, vmodel = panda.model, panda.collision_model, panda.visual_model
 
-    
-    path = osp.join(osp.dirname(osp.dirname(__file__)), "scenes.yaml")
-    scene = 3
-    pp = ParamParser(path, scene)
+    yaml_path = osp.join(osp.dirname(osp.dirname(__file__)), "scenes.yaml")
+    pp = ParamParser(yaml_path, 1)
+
+    geom_models = [vmodel, cmodel]
+    rmodel, geometric_models_reduced = pin.buildReducedModel(
+        rmodel,
+        list_of_geom_models=geom_models,
+        list_of_joints_to_lock=[7,8],
+        reference_configuration=np.append(np.array(pp.initial_config), np.zeros(2)))
+    # geometric_models_reduced is a list, ordered as the passed variable "geom_models" so:
+    vmodel, cmodel = geometric_models_reduced[
+        0], geometric_models_reduced[1]
     cmodel = pp.add_collisions(rmodel, cmodel)
 
+    cdata = cmodel.createData()
+    rdata = rmodel.createData()
     vis = create_viewer(rmodel, cmodel, cmodel)
     add_sphere_to_viewer(
         vis, "goal", 5e-2, pp.target_pose.translation, color=0x006400
